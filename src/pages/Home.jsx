@@ -1,3 +1,9 @@
+import SectionLayout from "../components/SectionLayout";
+
 export default function Home() {
-    return <h2 style={{ color: "blue" }}>¡Página de inicio cargada!</h2>;
-  }  
+  return (
+    <SectionLayout title="Inicio">
+      <p>Bienvenido al sistema de inventario Brontisandwich. Usa el menú lateral para navegar por el sitio.</p>
+    </SectionLayout>
+  );
+}

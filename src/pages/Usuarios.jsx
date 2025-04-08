@@ -1,3 +1,9 @@
+import SectionLayout from "../components/SectionLayout";
+
 export default function Usuarios() {
-    return <h2>Gestión de Usuarios</h2>;
-  }  
+    return (
+        <SectionLayout title="Gestión de Usuarios">
+          <p>Aquí irá el contenido relacionado con los usuarios.</p>
+        </SectionLayout>
+      );
+    }

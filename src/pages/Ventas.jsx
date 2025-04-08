@@ -1,3 +1,9 @@
+import SectionLayout from "../components/SectionLayout";
+
 export default function Ventas() {
-    return <h2>Gestión de Ventas</h2>;
-  }  
+    return (
+        <SectionLayout title="Gestión de Ventas">
+          <p>Aquí irá el contenido relacionado con las ventas.</p>
+        </SectionLayout>
+      );
+    }

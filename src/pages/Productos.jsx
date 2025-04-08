@@ -1,3 +1,9 @@
+import SectionLayout from "../components/SectionLayout";
+
 export default function Productos() {
-    return <h2>Gestión de Productos</h2>;
-  }  
+    return (
+        <SectionLayout title="Gestión de Productos">
+          <p>Aquí irá el contenido relacionado con los productos.</p>
+        </SectionLayout>
+      );
+    }

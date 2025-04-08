@@ -1,3 +1,9 @@
+import SectionLayout from "../components/SectionLayout";
+
 export default function Proveedores() {
-    return <h2>Gestión de Proveedores</h2>;
-  }  
+    return (
+        <SectionLayout title="Gestión de Proveedores">
+          <p>Aquí irá el contenido relacionado con los proveedores.</p>
+        </SectionLayout>
+      );
+    }
