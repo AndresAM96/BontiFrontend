@@ -84,17 +84,25 @@ const Proveedores = () => {
 
   const handleGuardar = async () => {
     try {
+      const proveedorFormateado = {
+        ...nuevoProveedor,
+        cedula_proveedor: parseInt(nuevoProveedor.cedula_proveedor, 10),
+      };
+  
+      console.log("Proveedor a guardar:", proveedorFormateado);
+  
       if (modoEdicion) {
-        const actualizado = await actualizarProveedor(proveedorEditandoId, nuevoProveedor);
+        const actualizado = await actualizarProveedor(proveedorEditandoId, proveedorFormateado);
         setProveedores((prev) =>
           prev.map((p) => (p.cedula_proveedor === proveedorEditandoId ? actualizado : p))
         );
         setSnackbarMsg("Proveedor actualizado correctamente.");
       } else {
-        const nuevo = await crearProveedor(nuevoProveedor);
+        const nuevo = await crearProveedor(proveedorFormateado);
         setProveedores((prev) => [...prev, nuevo]);
         setSnackbarMsg("Proveedor creado correctamente.");
       }
+  
       setSnackbarTipo("success");
       setSnackbarOpen(true);
       handleClose();
