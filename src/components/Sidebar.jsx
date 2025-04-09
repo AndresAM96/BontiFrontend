@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemText, Drawer, ListItemIcon } from "@mui/material";
+import { List, ListItem, ListItemText, Drawer, ListItemIcon, ListItemButton } from "@mui/material";
 import { Home, People, Inventory, ShoppingCart, LocalShipping, AdminPanelSettings } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
@@ -13,15 +13,20 @@ const menuItems = [
 
 const Sidebar = () => {
   return (
-    <Drawer variant="permanent" sx={{
-      width: 240,
-      [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
-    }}>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: 240,
+        [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+      }}
+    >
       <List>
         {menuItems.map((item) => (
-          <ListItem button key={item.text} component={Link} to={item.path}>
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton component={Link} to={item.path}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>

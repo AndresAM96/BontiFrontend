@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/clientes"; // ajusta si tu backend usa otra ruta
+const API_URL = "http://localhost:8080/brontisandwich/clientes"; // ajusta si tu backend usa otra ruta
 
 export const obtenerClientes = async () => {
   const response = await axios.get(API_URL);

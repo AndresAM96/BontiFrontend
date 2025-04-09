@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import {
+    Snackbar,
+    Alert,
     Box,
     Button,
     Dialog,
@@ -30,12 +32,20 @@ import {
     const [clientes, setClientes] = useState([]);
   
     const [nuevoCliente, setNuevoCliente] = useState({
-      nombre: "",
-      correo: "",
-      telefono: "",
+      cedula_cliente: "",
+      nombre_cliente: "",
+      direccion_cliente: "",
+      telefono_cliente: "",
+      email_cliente: "",
     });
 
-    // 1. Cargar datos del backend
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    
+    const [snackbarMsg, setSnackbarMsg] = useState("");
+    
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+
+    // Cargar datos del backend
     useEffect(() => {
       fetchClientes();
     }, []);
@@ -50,7 +60,13 @@ import {
     };
   
     const handleOpen = () => {
-      setNuevoCliente({ nombre: "", correo: "", telefono: "" }); // limpiar
+      setNuevoCliente({
+        cedula_cliente: "",
+        nombre_cliente: "",
+        direccion_cliente: "",
+        telefono_cliente: "",
+        email_cliente: "",
+      });
       setOpen(true);
     };
   
@@ -63,6 +79,7 @@ import {
   
     const handleGuardar = async () => {
       try {
+        console.log("Cliente a guardar:", nuevoCliente);
         const nuevo = await crearCliente(nuevoCliente);
         setClientes((prev) => [...prev, nuevo]);
         handleClose();
@@ -71,19 +88,29 @@ import {
       }
     };
 
-    const handleEliminar = async (id) => {
-        const confirmacion = confirm("¿Estás seguro de que quieres eliminar este cliente?");
-        if (!confirmacion) return;
-
-        try {
-          await eliminarCliente(id);
-          setClientes((prev) => prev.filter((cliente) => cliente.id !== id));
-        } catch (error) {
-          console.error("Error al eliminar cliente:", error);
-        }
+    const handleEliminar = (id) => {
+      setConfirmDelete({ open: true, id });
+    };
+    
+    const confirmarEliminacion = async () => {
+      try {
+        await eliminarCliente(confirmDelete.id);
+        setClientes((prev) =>
+          prev.filter((cliente) => cliente.cedula_cliente !== confirmDelete.id)
+        );
+        setSnackbarMsg("Cliente eliminado correctamente.");
+        setSnackbarOpen(true);
+      } catch (error) {
+        console.error("Error al eliminar cliente:", error);
+        setSnackbarMsg("Error al eliminar cliente.");
+        setSnackbarOpen(true);
+      } finally {
+        setConfirmDelete({ open: false, id: null });
+      }
     };
   
     return (
+      <>
       <SectionLayout title="Gestión de Clientes">
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button variant="contained" color="primary" onClick={handleOpen}>
@@ -93,29 +120,30 @@ import {
   
         <TableContainer component={Paper}>
           <Table>
-            <TableHead>
-                <TableRow>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Correo</TableCell>
-                    <TableCell>Teléfono</TableCell>
-                    <TableCell>Acciones</TableCell>
-                </TableRow>
-            </TableHead>
+          <TableHead>
+            <TableRow>
+              <TableCell>Cédula</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Dirección</TableCell>
+              <TableCell>Teléfono</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Acciones</TableCell>
+            </TableRow>
+          </TableHead>
             <TableBody>
               {clientes.map((cliente) => (
-                <TableRow key={cliente.id}>
-                    <TableCell>{cliente.nombre}</TableCell>
-                    <TableCell>{cliente.correo}</TableCell>
-                    <TableCell>{cliente.telefono}</TableCell>
-                    <TableCell>
-                        <IconButton
-                            color="error"
-                            onClick={() => handleEliminar(cliente.id)}
-                            >
-                            <DeleteIcon />
-                        </IconButton>
-                    </TableCell>
-                </TableRow>
+                <TableRow key={cliente.cedula_cliente}>
+                  <TableCell>{cliente.cedula_cliente}</TableCell>
+                  <TableCell>{cliente.nombre_cliente}</TableCell>
+                  <TableCell>{cliente.direccion_cliente}</TableCell>
+                  <TableCell>{cliente.telefono_cliente}</TableCell>
+                  <TableCell>{cliente.email_cliente}</TableCell>
+                  <TableCell>
+                    <IconButton color="error" onClick={() => handleEliminar(cliente.cedula_cliente)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>              
               ))}
             </TableBody>
           </Table>
@@ -126,27 +154,43 @@ import {
           <DialogTitle>Agregar Cliente</DialogTitle>
           <DialogContent>
             <TextField
-              label="Nombre"
-              name="nombre"
+              label="Cédula"
+              name="cedula_cliente"
               fullWidth
               margin="normal"
-              value={nuevoCliente.nombre}
+              value={nuevoCliente.cedula_cliente}
               onChange={handleChange}
             />
             <TextField
-              label="Correo"
-              name="correo"
+              label="Nombre"
+              name="nombre_cliente"
               fullWidth
               margin="normal"
-              value={nuevoCliente.correo}
+              value={nuevoCliente.nombre_cliente}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Dirección"
+              name="direccion_cliente"
+              fullWidth
+              margin="normal"
+              value={nuevoCliente.direccion_cliente}
               onChange={handleChange}
             />
             <TextField
               label="Teléfono"
-              name="telefono"
+              name="telefono_cliente"
               fullWidth
               margin="normal"
-              value={nuevoCliente.telefono}
+              value={nuevoCliente.telefono_cliente}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Email"
+              name="email_cliente"
+              fullWidth
+              margin="normal"
+              value={nuevoCliente.email_cliente}
               onChange={handleChange}
             />
           </DialogContent>
@@ -157,7 +201,31 @@ import {
             </Button>
           </DialogActions>
         </Dialog>
-      </SectionLayout>
+        </SectionLayout>
+        <Dialog open={confirmDelete.open} onClose={() => setConfirmDelete({ open: false, id: null })}>
+          <DialogTitle>¿Estás seguro de que deseas eliminar este cliente?</DialogTitle>
+          <DialogActions>
+            <Button onClick={() => setConfirmDelete({ open: false, id: null })}>Cancelar</Button>
+           <Button onClick={confirmarEliminacion} color="error" variant="contained">
+            Eliminar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+          <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          sx={{ width: "100%" }}
+          >
+            {snackbarMsg}
+          </Alert>
+        </Snackbar>
+      </>
     );
   };
   
