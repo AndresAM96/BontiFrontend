@@ -12,6 +12,7 @@ import {
   Snackbar,
   Alert,
   IconButton,
+  Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -36,11 +37,10 @@ export default function Ventas() {
   const fetchVentas = async () => {
     try {
       const data = await obtenerVentas();
-      console.log("ventas desde backend:", data);
+      console.log("VENTAS OBTENIDAS:", data);
       setVentas(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al obtener ventas:", error);
-      setVentas([]);
       setSnackbarMsg("Error al obtener ventas.");
       setSnackbarTipo("error");
       setSnackbarOpen(true);
@@ -53,7 +53,7 @@ export default function Ventas() {
 
     try {
       await eliminarVenta(id);
-      setVentas((prev) => prev.filter((venta) => venta.id_venta !== id));
+      setVentas((prev) => prev.filter((venta) => venta.idVenta !== id));
       setSnackbarMsg("Venta eliminada correctamente.");
       setSnackbarTipo("success");
       setSnackbarOpen(true);
@@ -63,6 +63,11 @@ export default function Ventas() {
       setSnackbarTipo("error");
       setSnackbarOpen(true);
     }
+  };
+
+  const calcularTotal = (venta) => {
+    const subtotal = venta.detalles?.reduce((acc, d) => acc + d.precio_unitario * d.cantidad, 0) || 0;
+    return subtotal - parseFloat(venta.descuento || 0);
   };
 
   return (
@@ -82,41 +87,45 @@ export default function Ventas() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell># ID</TableCell>
+                <TableCell>ID</TableCell>
                 <TableCell>Nombre</TableCell>
                 <TableCell>Usuario</TableCell>
                 <TableCell>Tipo Factura</TableCell>
                 <TableCell>Forma Pago</TableCell>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Descuento</TableCell>
+                <TableCell>Total</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Array.isArray(ventas) && ventas.map((venta) => (
-                <TableRow key={venta.id_venta}>
-                  <TableCell>{venta.id_venta}</TableCell>
-                  <TableCell>{venta.nombre}</TableCell>
-                  <TableCell>{venta.usuario?.nombre_usuario}</TableCell>
-                  <TableCell>{venta.tipo_factura}</TableCell>
-                  <TableCell>{venta.forma_pago}</TableCell>
-                  <TableCell>
-                    {new Date(venta.fecha).toLocaleString("es-CO")}
-                  </TableCell>
-                  <TableCell>{venta.descuento}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleEliminar(venta.id_venta)}
-                    >
+              {ventas.length > 0 ? (
+                ventas.map((venta) => (
+                  <TableRow key={venta.idVenta}>
+                    <TableCell>{venta.idVenta}</TableCell>
+                    <TableCell>{venta.nombre}</TableCell>
+                    <TableCell>{venta.usuario?.nombre}</TableCell>
+                    <TableCell>{venta.tipoFactura}</TableCell>
+                    <TableCell>{venta.formaPago}</TableCell>
+                    <TableCell>
+                      {new Date(venta.fecha).toLocaleString("es-CO")}
+                    </TableCell>
+                    <TableCell>${venta.descuento}</TableCell>
+                    <TableCell>${calcularTotal(venta).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleEliminar(venta.idVenta)}
+                      >
                       <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {ventas.length === 0 && (
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     No hay ventas registradas.
                   </TableCell>
                 </TableRow>

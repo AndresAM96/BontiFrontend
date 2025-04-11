@@ -105,8 +105,8 @@ export default function NuevaVenta() {
         })),
       };
       
-      await crearVenta(datosVenta);
       console.log("Datos a enviar al backend:", datosVenta);
+      await crearVenta(datosVenta);
       setSnackbar({ open: true, msg: "Venta guardada correctamente", tipo: "success" });
       navigate("/ventas");
     } catch (error) {
