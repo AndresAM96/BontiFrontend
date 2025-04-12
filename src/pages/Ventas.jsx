@@ -22,12 +22,15 @@ import {
   obtenerVentas,
   eliminarVenta,
 } from "../services/ventasService";
+import DetalleVentaModal from "../components/DetalleVentaModal";
 
 export default function Ventas() {
   const [ventas, setVentas] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState("");
   const [snackbarTipo, setSnackbarTipo] = useState("success");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,7 +40,6 @@ export default function Ventas() {
   const fetchVentas = async () => {
     try {
       const data = await obtenerVentas();
-      console.log("VENTAS OBTENIDAS:", data);
       setVentas(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al obtener ventas:", error);
@@ -53,7 +55,7 @@ export default function Ventas() {
 
     try {
       await eliminarVenta(id);
-      setVentas((prev) => prev.filter((venta) => venta.idVenta !== id));
+      setVentas((prev) => prev.filter((venta) => venta.id_venta !== id));
       setSnackbarMsg("Venta eliminada correctamente.");
       setSnackbarTipo("success");
       setSnackbarOpen(true);
@@ -63,6 +65,16 @@ export default function Ventas() {
       setSnackbarTipo("error");
       setSnackbarOpen(true);
     }
+  };
+
+  const handleVerDetalle = (venta) => {
+    setVentaSeleccionada(venta);
+    setModalOpen(true);
+  };
+
+  const handleCerrarModal = () => {
+    setModalOpen(false);
+    setVentaSeleccionada(null);
   };
 
   const calcularTotal = (venta) => {
@@ -101,27 +113,34 @@ export default function Ventas() {
             <TableBody>
               {ventas.length > 0 ? (
                 ventas.map((venta) => (
-                  <TableRow key={venta.idVenta}>
-                    <TableCell>{venta.idVenta}</TableCell>
+                  <TableRow key={venta.id_venta}>
+                    <TableCell>{venta.id_venta}</TableCell>
                     <TableCell>{venta.nombre}</TableCell>
                     <TableCell>{venta.usuario?.nombre}</TableCell>
-                    <TableCell>{venta.tipoFactura}</TableCell>
-                    <TableCell>{venta.formaPago}</TableCell>
+                    <TableCell>{venta.tipo_factura}</TableCell>
+                    <TableCell>{venta.forma_pago}</TableCell>
                     <TableCell>
                       {new Date(venta.fecha).toLocaleString("es-CO")}
                     </TableCell>
                     <TableCell>${venta.descuento}</TableCell>
                     <TableCell>${calcularTotal(venta).toFixed(2)}</TableCell>
                     <TableCell>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleVerDetalle(venta)}
+                        sx={{ mr: 1 }}
+                      >
+                        Ver Detalle
+                      </Button>
                       <IconButton
                         color="error"
-                        onClick={() => handleEliminar(venta.idVenta)}
+                        onClick={() => handleEliminar(venta.id_venta)}
                       >
-                      <DeleteIcon />
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
-
                 ))
               ) : (
                 <TableRow>
@@ -149,6 +168,12 @@ export default function Ventas() {
           {snackbarMsg}
         </Alert>
       </Snackbar>
+
+      <DetalleVentaModal
+        open={modalOpen}
+        venta={ventaSeleccionada}
+        onClose={handleCerrarModal}
+      />
     </>
   );
 }
