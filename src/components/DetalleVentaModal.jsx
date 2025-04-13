@@ -14,7 +14,7 @@ import {
   } from "@mui/material";
   import { forwardRef } from "react";
   import jsPDF from "jspdf";
-  import autoTable from "jspdf-autotable";
+  import "jspdf-autotable";
   
   const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -41,7 +41,7 @@ import {
       doc.text(`Tipo Factura: ${venta.tipo_factura}`, 14, 48);
       doc.text(`Fecha: ${new Date(venta.fecha).toLocaleString("es-CO")}`, 14, 56);
   
-      autoTable(doc,{
+      doc.autoTable({
         startY: 70,
         head: [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]],
         body: venta.detalles.map((d) => [
@@ -114,4 +114,4 @@ import {
         </DialogActions>
       </Dialog>
     );
-  }  
+  }
