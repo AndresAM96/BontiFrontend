@@ -9,29 +9,35 @@ import Usuarios from "./pages/Usuarios";
 import NuevaVenta from "./pages/ventas/NuevaVenta";
 import Login from "./pages/Login";
 import PrivateRoute from "./components/PrivateRoute";
+import RutaProtegidaAdmin from "./components/RutaProtegidaAdmin"; // 👈
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Ruta de login pública */}
         <Route path="/login" element={<Login />} />
 
-        {/* Rutas privadas */}
-        <Route
-          path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-            <Route index element={<Home />} />
-            <Route path="clientes" element={<Clientes />} />
-            <Route path="productos" element={<Productos />} />
-            <Route path="ventas" element={<Ventas />} />
-            <Route path="ventas/nueva" element={<NuevaVenta />} />
-            <Route path="proveedores" element={<Proveedores />} />
-            <Route path="usuarios" element={<Usuarios />} />
+        <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+          <Route index element={<Home />} />
+          <Route path="clientes" element={<Clientes />} />
+          <Route path="productos" element={<Productos />} />
+          <Route path="ventas" element={<Ventas />} />
+          <Route path="ventas/nueva" element={<NuevaVenta />} />
+          <Route path="proveedores" element={<Proveedores />} />
+
+          {/* Protegida solo para admin */}
+          <Route
+            path="usuarios"
+            element={
+              <RutaProtegidaAdmin>
+                <Usuarios />
+              </RutaProtegidaAdmin>
+            }
+          />
         </Route>
       </Routes>
     </Router>
   );
 }
-
 
 export default App;

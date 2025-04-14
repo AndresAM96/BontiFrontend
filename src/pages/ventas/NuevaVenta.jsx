@@ -12,13 +12,11 @@ import {
   Alert,
 } from "@mui/material";
 import SectionLayout from "../../components/SectionLayout";
-import { obtenerUsuarios } from "../../services/usuariosService";
 import { obtenerProductos } from "../../services/productosService";
 import { crearVenta } from "../../services/ventasService";
 import { useNavigate } from "react-router-dom";
 
 export default function NuevaVenta() {
-  const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
 
   const [venta, setVenta] = useState({
@@ -28,7 +26,6 @@ export default function NuevaVenta() {
     fecha: new Date().toISOString().slice(0, 16),
     descripcion: "",
     descuento: 0,
-    cedula_usuario: "",
     detalles: [],
   });
 
@@ -37,18 +34,8 @@ export default function NuevaVenta() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUsuarios();
     fetchProductos();
   }, []);
-
-  const fetchUsuarios = async () => {
-    try {
-      const data = await obtenerUsuarios();
-      setUsuarios(data);
-    } catch (error) {
-      console.error("Error al obtener usuarios:", error);
-    }
-  };
 
   const fetchProductos = async () => {
     try {
@@ -63,7 +50,6 @@ export default function NuevaVenta() {
     const nuevosDetalles = [...venta.detalles];
     nuevosDetalles[index][field] = field === "cantidad" ? parseInt(value) || 0 : value;
 
-    // Actualizar precio_unitario si cambia el producto
     if (field === "id_producto") {
       const productoSeleccionado = productos.find((p) => p.id_producto === parseInt(value));
       if (productoSeleccionado) {
@@ -89,22 +75,28 @@ export default function NuevaVenta() {
   };
 
   const calcularSubtotal = () =>
-      venta.detalles.reduce((acc, d) => acc + d.precio_unitario * d.cantidad, 0);
+    venta.detalles.reduce((acc, d) => acc + d.precio_unitario * d.cantidad, 0);
 
   const calcularTotal = () => calcularSubtotal() - parseFloat(venta.descuento || 0);
 
   const handleGuardar = async () => {
     try {
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      if (!usuario) {
+        setSnackbar({ open: true, msg: "Sesión no válida. Inicia sesión.", tipo: "error" });
+        return;
+      }
+
       const datosVenta = {
         ...venta,
-        usuario: { cedula_usuario: parseInt(venta.cedula_usuario) },
+        usuario: { cedula_usuario: usuario.cedula_usuario },
         detalles: venta.detalles.map((d) => ({
           producto: { id_producto: parseInt(d.id_producto) },
           cantidad: d.cantidad,
           precio_unitario: d.precio_unitario,
         })),
       };
-      
+
       console.log("Datos a enviar al backend:", datosVenta);
       await crearVenta(datosVenta);
       setSnackbar({ open: true, msg: "Venta guardada correctamente", tipo: "success" });
@@ -120,8 +112,9 @@ export default function NuevaVenta() {
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <TextField
-            label="Referencia de la venta"
+            label="Referencia de la venta (Opcional)"
             fullWidth
+            margin="normal"
             value={venta.nombre}
             onChange={(e) => setVenta({ ...venta, nombre: e.target.value })}
           />
@@ -131,11 +124,18 @@ export default function NuevaVenta() {
             label="Tipo de factura"
             select
             fullWidth
+            margin="normal"
             value={venta.tipo_factura}
             onChange={(e) => setVenta({ ...venta, tipo_factura: e.target.value })}
+            SelectProps={{
+              displayEmpty: true, // para mostrar correctamente el label cuando no hay selección
+            }}
           >
-            <MenuItem value="Factura A">Factura A</MenuItem>
-            <MenuItem value="Factura B">Factura B</MenuItem>
+            <MenuItem value="" disabled>
+              Tipo de factura
+            </MenuItem>
+            <MenuItem value="Factura">Factura</MenuItem>
+            <MenuItem value="Remisión">Remisión</MenuItem>
           </TextField>
         </Grid>
         <Grid item xs={6} md={3}>
@@ -143,9 +143,16 @@ export default function NuevaVenta() {
             label="Forma de pago"
             select
             fullWidth
+            margin="normal"
             value={venta.forma_pago}
             onChange={(e) => setVenta({ ...venta, forma_pago: e.target.value })}
+            SelectProps={{
+              displayEmpty: true, // para mostrar correctamente el label cuando no hay selección
+            }}
           >
+            <MenuItem value="" disabled>
+              Forma de pago
+            </MenuItem>
             <MenuItem value="Efectivo">Efectivo</MenuItem>
             <MenuItem value="Transferencia">Transferencia</MenuItem>
             <MenuItem value="Crédito">Crédito</MenuItem>
@@ -154,27 +161,12 @@ export default function NuevaVenta() {
 
         <Grid item xs={12}>
           <TextField
-            label="Descripción"
+            label="Descripción (opcional)"
             fullWidth
+            margin="normal"
             value={venta.descripcion}
             onChange={(e) => setVenta({ ...venta, descripcion: e.target.value })}
           />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="Usuario"
-            select
-            fullWidth
-            value={venta.cedula_usuario}
-            onChange={(e) => setVenta({ ...venta, cedula_usuario: e.target.value })}
-          >
-            {usuarios.map((u) => (
-              <MenuItem key={u.cedula_usuario} value={u.cedula_usuario}>
-                {u.nombre_usuario}
-              </MenuItem>
-            ))}
-          </TextField>
         </Grid>
 
         <Grid item xs={12}>
@@ -190,9 +182,16 @@ export default function NuevaVenta() {
                       select
                       label="Producto"
                       fullWidth
+                      margin="normal"
                       value={detalle.id_producto}
                       onChange={(e) => handleDetalleChange(i, "id_producto", e.target.value)}
+                      SelectProps={{
+                        displayEmpty: true, // para mostrar correctamente el label cuando no hay selección
+                      }}
                     >
+                      <MenuItem value="" disabled>
+                        Producto
+                      </MenuItem>
                       {productos.map((p) => (
                         <MenuItem key={p.id_producto} value={p.id_producto}>
                           {p.nombre_producto}
@@ -205,6 +204,7 @@ export default function NuevaVenta() {
                       label="Cantidad"
                       type="number"
                       fullWidth
+                      margin="normal"
                       value={detalle.cantidad}
                       onChange={(e) => handleDetalleChange(i, "cantidad", e.target.value)}
                     />
@@ -213,6 +213,7 @@ export default function NuevaVenta() {
                     <TextField
                       label="Precio Unitario"
                       fullWidth
+                      margin="normal"
                       value={detalle.precio_unitario}
                       InputProps={{ readOnly: true }}
                     />
@@ -221,6 +222,7 @@ export default function NuevaVenta() {
                     <TextField
                       label="Subtotal"
                       fullWidth
+                      margin="normal"
                       value={(detalle.precio_unitario * detalle.cantidad).toFixed(2)}
                       InputProps={{ readOnly: true }}
                     />
@@ -230,6 +232,7 @@ export default function NuevaVenta() {
                       color="error"
                       variant="outlined"
                       onClick={() => eliminarDetalle(i)}
+                      sx={{ mt: 2 }}
                     >
                       Eliminar
                     </Button>
@@ -248,13 +251,14 @@ export default function NuevaVenta() {
             label="Descuento"
             type="number"
             fullWidth
+            margin="normal"
             value={venta.descuento}
             onChange={(e) => setVenta({ ...venta, descuento: e.target.value })}
           />
         </Grid>
 
         <Grid item xs={6} md={3}>
-          <Typography variant="h6" mt={2}>
+          <Typography variant="h6" mt={4}>
             Total: ${calcularTotal().toFixed(2)}
           </Typography>
         </Grid>
